@@ -1,61 +1,42 @@
-name: Simple Android Build
+name: Android CI Build
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ main, master, develop ]
+
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Debug project
-      run: |
-        echo "当前目录: $(pwd)"
-        echo "文件列表:"
-        ls -la
-        echo ""
-        echo "查找 Gradle 文件:"
-        find . -name "*.gradle*" 2>/dev/null || echo "没有找到 gradle 文件"
-        
-    - name: Setup Java
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        
-    - name: Setup Android
-      run: |
-        # 手动设置 Android SDK
-        wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-        unzip -q commandlinetools-linux-*.zip
-        mkdir -p android-sdk/cmdline-tools/latest
-        mv cmdline-tools/* android-sdk/cmdline-tools/latest/
-        export ANDROID_HOME=$PWD/android-sdk
-        export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
-        
-        # 创建 license 文件
-        mkdir -p $ANDROID_HOME/licenses
-        echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > $ANDROID_HOME/licenses/android-sdk-license
-        echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > $ANDROID_HOME/licenses/android-sdk-preview-license
-        
-        # 安装组件
-        yes | sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
-        
-    - name: Try to build
-      run: |
-        # 检查是否有 gradlew
-        if [ -f "gradlew" ]; then
-          chmod +x gradlew
-          ./gradlew assembleDebug || echo "Gradle 构建失败"
-        else
-          # 检查是否有 build.gradle
-          if [ -f "build.gradle" ] || [ -f "build.gradle.kts" ]; then
-            echo "尝试使用系统 Gradle..."
-            gradle assembleDebug || echo "Gradle 构建失败"
-          else
-            echo "❌ 错误：没有找到 build.gradle 文件"
-            echo "请确保这是一个 Android 项目"
-            exit 1
-          fi
-        fi
+      # 1️⃣ 拉代码
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      # 2️⃣ 安装 JDK（Android 推荐 17 或 11）
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      # 3️⃣ 给予 gradlew 执行权限
+      - name: Grant execute permission
+        run: chmod +x gradlew
+
+      # 4️⃣ 构建项目（含单元测试）
+      - name: Build with Gradle
+        run: ./gradlew build --no-daemon
+
+      # 5️⃣ 生成 Debug APK
+      - name: Assemble Debug APK
+        run: ./gradlew assembleDebug
+
+      # 6️⃣ 上传 APK 产物
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
