@@ -3,9 +3,6 @@ name: Android Native CI  # 1. 工作流名称定义
 on:  # 2. 触发条件配置
   push:
     branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
-
 jobs:  # 3. 作业定义开始
   build:  # 4. 作业ID：build
     runs-on: ubuntu-latest  # 5. 运行环境配置
