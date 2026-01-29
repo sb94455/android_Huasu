@@ -3,7 +3,8 @@ name: Android CI Build
 on:
   push:
     branches: [ main, master, develop ]
-
+  pull_request:
+    branches: [ main, master ]
 
 jobs:
   build:
@@ -30,13 +31,38 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build --no-daemon
 
-      # 5️⃣ 生成 Debug APK
+      # 5️⃣ 生成 Debug APK (多架构支持)
       - name: Assemble Debug APK
         run: ./gradlew assembleDebug
 
-      # 6️⃣ 上传 APK 产物
-      - name: Upload APK
+      # 6️⃣ 生成 Release APK (多架构支持)
+      - name: Assemble Release APK
+        run: ./gradlew assembleRelease
+
+      # 7️⃣ 上传 Debug APK 产物
+      - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
           name: app-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
+
+      # 8️⃣ 上传 Release APK 产物
+      - name: Upload Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: app/build/outputs/apk/release/app-release.apk
+
+      # 9️⃣ 生成版本信息
+      - name: Generate Version Info
+        run: |
+          echo "Build Date: $(date)" > version.txt
+          echo "Commit: ${{ github.sha }}" >> version.txt
+          echo "Branch: ${{ github.ref_name }}" >> version.txt
+
+      # 🔟 上传版本信息
+      - name: Upload Version Info
+        uses: actions/upload-artifact@v4
+        with:
+          name: version-info
+          path: version.txt
