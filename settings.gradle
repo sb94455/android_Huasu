@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "HuasuAppAndroi"
+rootProject.name = "android_Huasu"
 include ':app'
