@@ -1,0 +1,22 @@
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景渐变 -->
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fa8c16;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d46b08;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- 圆角矩形背景 -->
+  <rect width="512" height="512" rx="100" fill="url(#bg)"/>
+
+  <!-- 设备外框 -->
+  <rect x="100" y="140" width="312" height="200" rx="20" fill="none" stroke="white" stroke-width="24"/>
+
+  <!-- 屏幕横线 -->
+  <rect x="156" y="240" width="200" height="12" rx="6" fill="white"/>
+
+  <!-- 底部圆钮 -->
+  <circle cx="256" cy="400" r="40" fill="none" stroke="white" stroke-width="20"/>
+  <circle cx="256" cy="400" r="20" fill="#fa8c16"/>
+</svg>

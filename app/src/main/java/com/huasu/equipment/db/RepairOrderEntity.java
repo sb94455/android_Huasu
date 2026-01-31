@@ -1,5 +1,6 @@
 package com.huasu.equipment.db;
 
+import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
@@ -13,14 +14,30 @@ public class RepairOrderEntity {
     private int id;
 
     private String name;
+
+    @ColumnInfo(name = "equipment_name")
     private String equipmentName;
+
+    @ColumnInfo(name = "equipment_code")
     private String equipmentCode;
+
+    @ColumnInfo(name = "fault_type")
     private String faultType;
+
+    @ColumnInfo(name = "fault_level")
     private String faultLevel;
+
+    @ColumnInfo(name = "fault_description")
     private String faultDescription;
+
     private String state;
+
+    @ColumnInfo(name = "report_time")
     private String reportTime;
+
     private String priority;
+
+    @ColumnInfo(name = "last_update_time")
     private long lastUpdateTime;
 
     public RepairOrderEntity() {

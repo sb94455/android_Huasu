@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设备管理图标生成器</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #f0f0f0;
+            margin: 0;
+            gap: 40px;
+        }
+
+        .icon-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .icon-wrapper {
+            background: white;
+            padding: 20px;
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .icon {
+            width: 200px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 45px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 图标1：蓝色渐变背景 + 齿轮 */
+        .icon-1 {
+            background: linear-gradient(135deg, #1890ff 0%, #0050d9 100%);
+        }
+
+        .gear {
+            width: 100px;
+            height: 100px;
+            position: relative;
+        }
+
+        .gear::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: white;
+            border-radius: 50%;
+            clip-path: polygon(
+                50% 0%, 60% 10%, 65% 0%, 70% 10%, 80% 5%, 85% 15%,
+                95% 20%, 90% 30%, 100% 35%, 95% 45%, 100% 55%,
+                95% 65%, 100% 75%, 90% 80%, 95% 90%, 85% 95%,
+                75% 100%, 65% 95%, 55% 100%, 50% 90%,
+                45% 100%, 35% 95%, 25% 100%, 15% 95%,
+                5% 90%, 10% 80%, 0% 75%, 5% 65%,
+                0% 55%, 5% 45%, 0% 35%, 10% 30%,
+                5% 20%, 15% 15%, 20% 5%, 30% 10%,
+                35% 0%, 40% 10%
+            );
+        }
+
+        .gear::after {
+            content: '';
+            position: absolute;
+            width: 35%;
+            height: 35%;
+            background: #1890ff;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* 图标2：绿色渐变 + 扳手 */
+        .icon-2 {
+            background: linear-gradient(135deg, #52c41a 0%, #237804 100%);
+        }
+
+        .wrench {
+            width: 50px;
+            height: 110px;
+            background: white;
+            border-radius: 8px 8px 25px 25px;
+            position: relative;
+            transform: rotate(45deg);
+        }
+
+        .wrench::before {
+            content: '';
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 8px;
+            top: -35px;
+        }
+
+        .wrench::after {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: #52c41a;
+            border-radius: 50%;
+            top: -22px;
+            left: 13px;
+        }
+
+        /* 图标3：橙色渐变 + 设备轮廓 */
+        .icon-3 {
+            background: linear-gradient(135deg, #fa8c16 0%, #d46b08 100%);
+        }
+
+        .device {
+            width: 120px;
+            height: 80px;
+            border: 8px solid white;
+            border-radius: 12px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .device::before {
+            content: '';
+            width: 50px;
+            height: 4px;
+            background: white;
+            border-radius: 2px;
+        }
+
+        .device::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border: 4px solid white;
+            border-radius: 50%;
+            bottom: -15px;
+            background: #fa8c16;
+        }
+
+        /* 图标4：紫色渐变 + 工具组合 */
+        .icon-4 {
+            background: linear-gradient(135deg, #722ed1 0%, #531dab 100%);
+        }
+
+        .tools {
+            position: relative;
+            width: 100px;
+            height: 100px;
+        }
+
+        .tools-gear {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border: 6px solid white;
+            border-radius: 50%;
+            top: 10px;
+            left: 25px;
+        }
+
+        .tools-gear::before {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: #722ed1;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .tools-wrench {
+            position: absolute;
+            width: 8px;
+            height: 70px;
+            background: white;
+            border-radius: 4px;
+            top: 45px;
+            left: 46px;
+            transform: rotate(45deg);
+        }
+
+        label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="icon-container">
+        <div class="title">图标 1 - 齿轮</div>
+        <div class="icon-wrapper">
+            <div class="icon icon-1">
+                <div class="gear"></div>
+            </div>
+        </div>
+        <label>推荐：简洁明了</label>
+    </div>
+
+    <div class="icon-container">
+        <div class="title">图标 2 - 扳手</div>
+        <div class="icon-wrapper">
+            <div class="icon icon-2">
+                <div class="wrench"></div>
+            </div>
+        </div>
+        <label>维修主题</label>
+    </div>
+
+    <div class="icon-container">
+        <div class="title">图标 3 - 设备</div>
+        <div class="icon-wrapper">
+            <div class="icon icon-3">
+                <div class="device"></div>
+            </div>
+        </div>
+        <label>设备主题</label>
+    </div>
+
+    <div class="icon-container">
+        <div class="title">图标 4 - 组合工具</div>
+        <div class="icon-wrapper">
+            <div class="icon icon-4">
+                <div class="tools">
+                    <div class="tools-gear"></div>
+                    <div class="tools-wrench"></div>
+                </div>
+            </div>
+        </div>
+        <label>综合管理</label>
+    </div>
+</body>
+</html>

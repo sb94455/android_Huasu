@@ -18,6 +18,8 @@ import com.huasu.equipment.api.SessionManager;
 import com.huasu.equipment.api.request.LoginRequest;
 import com.huasu.equipment.api.response.BaseResponse;
 import com.huasu.equipment.ui.main.MainActivity;
+import com.huasu.equipment.ui.settings.ServerConfigActivity;
+import com.huasu.equipment.utils.ServerConfigManager;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -42,14 +44,18 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // 初始化 SessionManager
+        // 初始化 SessionManager 和 ServerConfigManager
         SessionManager.init(this);
+        ServerConfigManager.init(this);
 
         // 检查是否已登录
         if (SessionManager.isLoggedIn()) {
             navigateToMain();
             return;
         }
+
+        // 加载服务器配置
+        loadServerConfig();
 
         initViews();
         setupListeners();
@@ -70,10 +76,19 @@ public class LoginActivity extends AppCompatActivity {
 
     private void setupListeners() {
         btnLogin.setOnClickListener(v -> attemptLogin());
+        tvServerSettings.setOnClickListener(v -> openServerSettings());
+    }
 
-        tvServerSettings.setOnClickListener(v -> showServerSettingsDialog());
+    private void loadServerConfig() {
+        // 从配置中加载数据库名称
+        String databaseName = ServerConfigManager.getDatabaseName();
+        String serverUrl = ServerConfigManager.getServerUrl();
 
-        tvServerInfo.setText(getServerUrl());
+        etDatabase.setText(databaseName);
+        tvServerInfo.setText(serverUrl);
+
+        // 更新 ApiClient 的服务器地址
+        ApiClient.setBaseUrl(serverUrl);
     }
 
     private void attemptLogin() {
@@ -142,6 +157,14 @@ public class LoginActivity extends AppCompatActivity {
                                 data.getUser().getEmail()
                         );
 
+                        // 如果首次登录成功，保存服务器配置
+                        if (!ServerConfigManager.isConfigured()) {
+                            ServerConfigManager.saveServerConfig(
+                                    ApiClient.getBaseUrl(),
+                                    database
+                            );
+                        }
+
                         Toast.makeText(LoginActivity.this,
                                 "登录成功，欢迎 " + data.getUser().getName(),
                                 Toast.LENGTH_SHORT).show();
@@ -169,20 +192,15 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    private void openServerSettings() {
+        Intent intent = new Intent(this, ServerConfigActivity.class);
+        startActivity(intent);
+    }
+
     private void navigateToMain() {
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
-    }
-
-    private void showServerSettingsDialog() {
-        // TODO: 实现服务器设置对话框
-        Toast.makeText(this, "服务器设置功能待实现", Toast.LENGTH_SHORT).show();
-    }
-
-    private String getServerUrl() {
-        // TODO: 从配置中读取服务器地址
-        return "http://192.168.64.128:18080";
     }
 }

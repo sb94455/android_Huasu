@@ -1,5 +1,6 @@
 package com.huasu.equipment.db;
 
+import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
@@ -13,27 +14,39 @@ public class EquipmentEntity {
     private int id;
 
     private String name;
+
+    @ColumnInfo(name = "equipment_name")
     private String equipmentName;
+
+    @ColumnInfo(name = "complete_name")
     private String completeName;
+
+    @ColumnInfo(name = "equipment_type")
     private String equipmentType;
+
     private String state;
+
     private String location;
+
     private String model;
+
+    @ColumnInfo(name = "qc_num")
     private String qcNum;
+
+    @ColumnInfo(name = "equipment_age")
     private int equipmentAge;
+
+    @ColumnInfo(name = "warranty_status")
     private String warrantyStatus;
+
+    @ColumnInfo(name = "is_favorite")
     private boolean isFavorite;
+
+    @ColumnInfo(name = "last_update_time")
     private long lastUpdateTime;
 
     // Constructors
     public EquipmentEntity() {
-        this.lastUpdateTime = System.currentTimeMillis();
-    }
-
-    public EquipmentEntity(int id, String name, String equipmentName) {
-        this.id = id;
-        this.name = name;
-        this.equipmentName = equipmentName;
         this.lastUpdateTime = System.currentTimeMillis();
     }
 

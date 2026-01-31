@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>设备管理图标</title>
+</head>
+<body style="margin:0;padding:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f0f0f0;">
+    <canvas id="canvas" width="1024" height="1024"></canvas>
+    <div style="position:fixed;top:20px;right:20px;">
+        <button onclick="download()" style="padding:15px 30px;font-size:18px;cursor:pointer;background:#1890ff;color:white;border:none;border-radius:8px;">下载图标</button>
+    </div>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // 绘制圆角矩形背景
+        function roundRect(x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+        }
+
+        // 绘制渐变背景
+        const gradient = ctx.createLinearGradient(0, 0, 1024, 1024);
+        gradient.addColorStop(0, '#fa8c16');
+        gradient.addColorStop(1, '#d46b08');
+        roundRect(0, 0, 1024, 1024, 180);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        // 绘制设备外框
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 40;
+        roundRect(180, 280, 664, 420, 50);
+        ctx.stroke();
+
+        // 绘制屏幕线条
+        ctx.fillStyle = 'white';
+        roundRect(280, 480, 464, 40, 20);
+        ctx.fill();
+
+        // 绘制底部圆钮外圈
+        ctx.beginPath();
+        ctx.arc(512, 820, 90, 0, Math.PI * 2);
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 45;
+        ctx.stroke();
+
+        // 绘制底部圆钮内圈
+        ctx.beginPath();
+        ctx.arc(512, 820, 50, 0, Math.PI * 2);
+        ctx.fillStyle = '#fa8c16';
+        ctx.fill();
+
+        function download() {
+            const link = document.createElement('a');
+            link.download = 'icon.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+    </script>
+</body>
+</html>

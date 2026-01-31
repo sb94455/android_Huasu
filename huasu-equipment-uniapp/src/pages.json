@@ -1,0 +1,106 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "登录"
+      }
+    },
+    {
+      "path": "pages/server-config/index",
+      "style": {
+        "navigationBarTitleText": "服务器配置"
+      }
+    },
+    {
+      "path": "pages/main/index",
+      "style": {
+        "navigationBarTitleText": "华数设备管理"
+      }
+    },
+    {
+      "path": "pages/dashboard/index",
+      "style": {
+        "navigationBarTitleText": "仪表盘"
+      }
+    },
+    {
+      "path": "pages/equipment/list",
+      "style": {
+        "navigationBarTitleText": "设备列表"
+      }
+    },
+    {
+      "path": "pages/equipment/detail",
+      "style": {
+        "navigationBarTitleText": "设备详情"
+      }
+    },
+    {
+      "path": "pages/inspection/list",
+      "style": {
+        "navigationBarTitleText": "点检任务"
+      }
+    },
+    {
+      "path": "pages/inspection/detail",
+      "style": {
+        "navigationBarTitleText": "任务详情"
+      }
+    },
+    {
+      "path": "pages/inspection/submit",
+      "style": {
+        "navigationBarTitleText": "提交结果"
+      }
+    },
+    {
+      "path": "pages/repair/list",
+      "style": {
+        "navigationBarTitleText": "报修单"
+      }
+    },
+    {
+      "path": "pages/repair/detail",
+      "style": {
+        "navigationBarTitleText": "报修详情"
+      }
+    },
+    {
+      "path": "pages/repair/create",
+      "style": {
+        "navigationBarTitleText": "创建报修"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "华数设备管理",
+    "navigationBarBackgroundColor": "#F8F8F8",
+    "backgroundColor": "#F8F8F8"
+  },
+  "tabBar": {
+    "color": "#666666",
+    "selectedColor": "#1890ff",
+    "borderStyle": "black",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/dashboard/index",
+        "text": "仪表盘"
+      },
+      {
+        "pagePath": "pages/equipment/list",
+        "text": "设备"
+      },
+      {
+        "pagePath": "pages/inspection/list",
+        "text": "点检"
+      },
+      {
+        "pagePath": "pages/repair/list",
+        "text": "报修"
+      }
+    ]
+  }
+}

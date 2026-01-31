@@ -13,7 +13,14 @@
       "Bash(unzip:*)",
       "Bash(cmd.exe /c \"gradlew.bat --version\")",
       "Bash(cmd.exe /c \"cd /d D:\\\\android_Huasu && gradlew.bat --version\")",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "WebSearch",
+      "Bash(keytool:*)",
+      "Bash(\"/c/Program Files/Java/jdk-17/bin/keytool.exe\":*)",
+      "Bash(\"/c/Program Files/Java/jdk-17/bin/keytool.exe\" -list -v -keystore huasu.keystore -alias huasu -storepass huasu123)",
+      "Bash(npm install)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:h5:*)"
     ]
   }
 }

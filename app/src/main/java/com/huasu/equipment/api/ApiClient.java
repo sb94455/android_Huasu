@@ -2,7 +2,6 @@ package com.huasu.equipment.api;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.huasu.equipment.BuildConfig;
 
 import java.util.concurrent.TimeUnit;
 
@@ -17,11 +16,11 @@ import retrofit2.converter.gson.GsonConverterFactory;
  */
 public class ApiClient {
 
-    // TODO: 根据实际部署修改服务器地址
-    private static final String BASE_URL = "http://192.168.64.128:18080/";
+    private static String BASE_URL = "http://192.168.64.128:18080/";
 
     private static Retrofit retrofit = null;
     private static OdooApiService apiService = null;
+    private static OkHttpClient okHttpClient = null;
 
     /**
      * 获取 Retrofit 实例
@@ -30,12 +29,10 @@ public class ApiClient {
         if (retrofit == null) {
             // 日志拦截器
             HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-            loggingInterceptor.setLevel(BuildConfig.DEBUG
-                    ? HttpLoggingInterceptor.Level.BODY
-                    : HttpLoggingInterceptor.Level.NONE);
+            loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
 
             // OkHttp 客户端配置
-            OkHttpClient okHttpClient = new OkHttpClient.Builder()
+            okHttpClient = new OkHttpClient.Builder()
                     .addInterceptor(loggingInterceptor)
                     .addInterceptor(chain -> {
                         // 添加 Session ID 到请求头
@@ -84,11 +81,20 @@ public class ApiClient {
         if (!baseUrl.endsWith("/")) {
             baseUrl += "/";
         }
+        BASE_URL = baseUrl;
+        // 重新创建 Retrofit 实例
         retrofit = new Retrofit.Builder()
                 .baseUrl(baseUrl)
-                .client(getClient().callFactory())
+                .client(okHttpClient)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         apiService = null;
+    }
+
+    /**
+     * 获取当前 Base URL
+     */
+    public static String getBaseUrl() {
+        return BASE_URL;
     }
 }

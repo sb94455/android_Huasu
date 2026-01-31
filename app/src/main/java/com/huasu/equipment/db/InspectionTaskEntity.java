@@ -1,5 +1,6 @@
 package com.huasu.equipment.db;
 
+import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
@@ -13,15 +14,34 @@ public class InspectionTaskEntity {
     private int id;
 
     private String name;
+
+    @ColumnInfo(name = "task_name")
     private String taskName;
+
     private String state;
+
+    @ColumnInfo(name = "planned_start_date")
     private String plannedStartDate;
+
+    @ColumnInfo(name = "planned_end_date")
     private String plannedEndDate;
+
+    @ColumnInfo(name = "total_equipment")
     private int totalEquipment;
+
+    @ColumnInfo(name = "inspected_equipment")
     private int inspectedEquipment;
+
+    @ColumnInfo(name = "abnormal_equipment")
     private int abnormalEquipment;
+
+    @ColumnInfo(name = "normal_equipment")
     private int normalEquipment;
+
+    @ColumnInfo(name = "completion_rate")
     private double completionRate;
+
+    @ColumnInfo(name = "last_update_time")
     private long lastUpdateTime;
 
     public InspectionTaskEntity() {
