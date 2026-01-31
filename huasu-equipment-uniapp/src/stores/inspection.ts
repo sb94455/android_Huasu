@@ -87,13 +87,13 @@ export const useInspectionStore = defineStore('inspection', {
         const result = await inspectionApi.getPendingTasks(this.pendingPage, 20)
 
         if (refresh) {
-          this.pendingList = result.data
+          this.pendingList = result
         } else {
-          this.pendingList = [...this.pendingList, ...result.data]
+          this.pendingList = [...this.pendingList, ...result]
         }
 
-        this.pendingTotal = result.total
-        this.pendingHasMore = this.pendingList.length < result.total
+        this.pendingTotal = result.length
+        this.pendingHasMore = result.length >= 20
       } catch (error: any) {
         throw new Error(error.message || '获取待办任务失败')
       } finally {

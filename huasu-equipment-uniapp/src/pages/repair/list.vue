@@ -64,10 +64,11 @@ const selectedFilter = ref('all')
 const loading = ref(false)
 
 const filteredList = computed(() => {
+  const list = repairStore.list || []
   if (selectedFilter.value === 'all') {
-    return repairStore.list
+    return list
   }
-  return repairStore.list.filter(order => order.state === selectedFilter.value)
+  return list.filter(order => order.state === selectedFilter.value)
 })
 
 // 加载报修单列表
@@ -77,7 +78,7 @@ async function loadList(refresh = false) {
   loading.value = true
 
   try {
-    const page = refresh ? 1 : repairStore.currentPage + 1
+    const page = refresh ? 1 : (repairStore.currentPage || 1) + 1
     await repairStore.fetchList({ page, limit: 20 }, refresh)
   } catch (error: any) {
     uni.showToast({
@@ -111,6 +112,7 @@ function createRepair() {
 }
 
 // 下拉刷新
+// #ifndef H5
 onPullDownRefresh(() => {
   repairStore.clearList()
   loadList(true).finally(() => {
@@ -124,9 +126,10 @@ onReachBottom(() => {
     loadMore()
   }
 })
+// #endif
 
 onMounted(() => {
-  if (repairStore.list.length === 0) {
+  if (!repairStore.list || repairStore.list.length === 0) {
     loadList(true)
   }
 })

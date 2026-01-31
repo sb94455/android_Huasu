@@ -24,9 +24,14 @@ export const useEquipmentStore = defineStore('equipment', {
   }),
 
   getters: {
-    activeEquipment: (state) => state.list.filter(e => e.status === 'active'),
-    brokenEquipment: (state) => state.list.filter(e => e.status === 'broken'),
-    maintenanceEquipment: (state) => state.list.filter(e => e.status === 'maintenance')
+    // 正常设备 (state: normal)
+    normalEquipment: (state) => state.list.filter(e => e.state === 'normal'),
+    // 异常设备 (state: bug)
+    brokenEquipment: (state) => state.list.filter(e => e.state === 'bug'),
+    // 维修中设备 (state: maintenance)
+    maintenanceEquipment: (state) => state.list.filter(e => e.state === 'maintenance'),
+    // 已报废设备 (state: scrapped)
+    scrappedEquipment: (state) => state.list.filter(e => e.state === 'scrapped')
   },
 
   actions: {

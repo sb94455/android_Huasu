@@ -9,8 +9,8 @@
       <view class="card">
         <view class="equipment-detail-page__header">
           <view>
-            <text class="equipment-detail-page__name">{{ equipment.name }}</text>
-            <text class="equipment-detail-page__code">{{ equipment.code }}</text>
+            <text class="equipment-detail-page__code">{{ equipment.name }}</text>
+            <text class="equipment-detail-page__name">{{ equipment.equipment_name }}</text>
           </view>
           <view class="equipment-detail-page__status" :style="{ backgroundColor: statusColor }">
             <text class="equipment-detail-page__status-text">{{ statusText }}</text>
@@ -20,29 +20,69 @@
         <view class="divider"></view>
 
         <view class="equipment-detail-page__info">
-          <view class="equipment-detail-page__info-item">
-            <text class="equipment-detail-page__info-label">分类</text>
-            <text class="equipment-detail-page__info-value">{{ equipment.category || '-' }}</text>
-          </view>
-          <view class="equipment-detail-page__info-item">
-            <text class="equipment-detail-page__info-label">位置</text>
-            <text class="equipment-detail-page__info-value">{{ equipment.location || '-' }}</text>
-          </view>
-          <view class="equipment-detail-page__info-item">
+          <view class="equipment-detail-page__info-item" v-if="equipment.model">
             <text class="equipment-detail-page__info-label">型号</text>
             <text class="equipment-detail-page__info-value">{{ equipment.model || '-' }}</text>
           </view>
-          <view class="equipment-detail-page__info-item">
-            <text class="equipment-detail-page__info-label">制造商</text>
-            <text class="equipment-detail-page__info-value">{{ equipment.manufacturer || '-' }}</text>
+          <view class="equipment-detail-page__info-item" v-if="equipment.brand_id">
+            <text class="equipment-detail-page__info-label">品牌</text>
+            <text class="equipment-detail-page__info-value">{{ getBrandName(equipment.brand_id) }}</text>
           </view>
-          <view class="equipment-detail-page__info-item">
-            <text class="equipment-detail-page__info-label">购买日期</text>
+          <view class="equipment-detail-page__info-item" v-if="equipment.equipment_type">
+            <text class="equipment-detail-page__info-label">类型</text>
+            <text class="equipment-detail-page__info-value">{{ getEquipmentTypeLabel(equipment.equipment_type) }}</text>
+          </view>
+          <view class="equipment-detail-page__info-item" v-if="equipment.level">
+            <text class="equipment-detail-page__info-label">等级</text>
+            <text class="equipment-detail-page__info-value">{{ getLevelLabel(equipment.level) }}</text>
+          </view>
+          <view class="equipment-detail-page__info-item" v-if="equipment.location_id">
+            <text class="equipment-detail-page__info-label">位置</text>
+            <text class="equipment-detail-page__info-value">{{ getLocationName(equipment.location_id) }}</text>
+          </view>
+          <view class="equipment-detail-page__info-item" v-if="equipment.location">
+            <text class="equipment-detail-page__info-label">位置号</text>
+            <text class="equipment-detail-page__info-value">{{ equipment.location }}</text>
+          </view>
+          <view class="equipment-detail-page__info-item" v-if="equipment.storage_location">
+            <text class="equipment-detail-page__info-label">存放位置</text>
+            <text class="equipment-detail-page__info-value">{{ equipment.storage_location }}</text>
+          </view>
+          <view class="equipment-detail-page__info-item" v-if="equipment.department_id">
+            <text class="equipment-detail-page__info-label">所属部门</text>
+            <text class="equipment-detail-page__info-value">{{ getDepartmentName(equipment.department_id) }}</text>
+          </view>
+          <view class="equipment-detail-page__info-item" v-if="equipment.responsible_id">
+            <text class="equipment-detail-page__info-label">负责人</text>
+            <text class="equipment-detail-page__info-value">{{ getResponsibleName(equipment.responsible_id) }}</text>
+          </view>
+          <view class="equipment-detail-page__info-item" v-if="equipment.factory_code">
+            <text class="equipment-detail-page__info-label">出厂编号</text>
+            <text class="equipment-detail-page__info-value">{{ equipment.factory_code }}</text>
+          </view>
+          <view class="equipment-detail-page__info-item" v-if="equipment.asset_code">
+            <text class="equipment-detail-page__info-label">资产编号</text>
+            <text class="equipment-detail-page__info-value">{{ equipment.asset_code }}</text>
+          </view>
+          <view class="equipment-detail-page__info-item" v-if="equipment.purchase_date">
+            <text class="equipment-detail-page__info-label">购置日期</text>
             <text class="equipment-detail-page__info-value">{{ formatDate(equipment.purchase_date) }}</text>
           </view>
-          <view class="equipment-detail-page__info-item">
-            <text class="equipment-detail-page__info-label">保修到期</text>
-            <text class="equipment-detail-page__info-value">{{ formatDate(equipment.warranty_expiry) }}</text>
+          <view class="equipment-detail-page__info-item" v-if="equipment.purchase_amount">
+            <text class="equipment-detail-page__info-label">购置金额</text>
+            <text class="equipment-detail-page__info-value">¥{{ equipment.purchase_amount }}</text>
+          </view>
+          <view class="equipment-detail-page__info-item" v-if="equipment.warranty_period">
+            <text class="equipment-detail-page__info-label">保修期</text>
+            <text class="equipment-detail-page__info-value">{{ equipment.warranty_period }} 个月</text>
+          </view>
+          <view class="equipment-detail-page__info-item" v-if="equipment.warranty_end_date">
+            <text class="equipment-detail-page__info-label">保修到期日</text>
+            <text class="equipment-detail-page__info-value">{{ formatDate(equipment.warranty_end_date) }}</text>
+          </view>
+          <view class="equipment-detail-page__info-item" v-if="equipment.warranty_status">
+            <text class="equipment-detail-page__info-label">保修状态</text>
+            <text class="equipment-detail-page__info-value">{{ getWarrantyStatusLabel(equipment.warranty_status) }}</text>
           </view>
         </view>
 
@@ -50,38 +90,6 @@
         <view v-if="equipment.notes" class="equipment-detail-page__notes">
           <text class="equipment-detail-page__notes-label">备注</text>
           <text class="equipment-detail-page__notes-text">{{ equipment.notes }}</text>
-        </view>
-      </view>
-
-      <!-- 维修历史 -->
-      <view class="card">
-        <view class="card__title">维修历史</view>
-        <view v-if="repairHistory.length === 0" class="empty">
-          <text class="empty__text">暂无维修记录</text>
-        </view>
-        <view v-else class="equipment-detail-page__history">
-          <view v-for="item in repairHistory" :key="item.id" class="history-item">
-            <text class="history-item__date">{{ formatDate(item.date) }}</text>
-            <text class="history-item__fault">{{ item.fault_type || '故障' }}</text>
-            <view class="history-item__status tag tag--default">{{ item.state }}</view>
-          </view>
-        </view>
-      </view>
-
-      <!-- 点检历史 -->
-      <view class="card">
-        <view class="card__title">点检历史</view>
-        <view v-if="inspectionHistory.length === 0" class="empty">
-          <text class="empty__text">暂无点检记录</text>
-        </view>
-        <view v-else class="equipment-detail-page__history">
-          <view v-for="item in inspectionHistory" :key="item.id" class="history-item">
-            <text class="history-item__date">{{ formatDate(item.date) }}</text>
-            <text class="history-item__task">{{ item.name }}</text>
-            <view class="history-item__status" :class="getInspectionStatusClass(item.state)">
-              {{ item.state }}
-            </view>
-          </view>
         </view>
       </view>
 
@@ -97,43 +105,101 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useEquipmentStore } from '@/stores/equipment'
 import { equipmentApi } from '@/api/equipment'
-import { EQUIPMENT_STATUS, EQUIPMENT_STATUS_TEXT, EQUIPMENT_STATUS_COLOR } from '@/utils/constants'
+import type { Equipment, EquipmentType, EquipmentLevel, WarrantyStatus } from '@/types'
 
-const equipmentStore = useEquipmentStore()
-
-const equipment = ref<any>(null)
-const repairHistory = ref<any[]>([])
-const inspectionHistory = ref<any[]>([])
+const equipment = ref<Equipment | null>(null)
 const loading = ref(false)
 
+// 状态映射：normal(正常), bug(异常), maintenance(维修中), scrapped(已报废)
 const statusText = computed(() => {
-  if (!equipment.value) return ''
-  return EQUIPMENT_STATUS_TEXT[equipment.value.status.toUpperCase() as keyof typeof EQUIPMENT_STATUS] || equipment.value.status
+  const stateMap: Record<string, string> = {
+    'normal': '正常',
+    'bug': '异常',
+    'maintenance': '维修中',
+    'scrapped': '已报废'
+  }
+  return stateMap[equipment.value?.state || ''] || equipment.value?.state || ''
 })
 
 const statusColor = computed(() => {
-  if (!equipment.value) return '#999'
-  return EQUIPMENT_STATUS_COLOR[equipment.value.status.toUpperCase() as keyof typeof EQUIPMENT_STATUS] || '#999'
+  const colorMap: Record<string, string> = {
+    'normal': '#52c41a',     // 正常 - 绿色
+    'bug': '#ff4d4f',        // 异常 - 红色
+    'maintenance': '#faad14', // 维修中 - 橙色
+    'scrapped': '#999999'     // 已报废 - 灰色
+  }
+  return colorMap[equipment.value?.state || ''] || '#999'
 })
+
+// 获取品牌名称
+function getBrandName(brandId: number | Array<[number, string]>): string {
+  if (Array.isArray(brandId)) {
+    return brandId[1] || '-'
+  }
+  return '-'
+}
+
+// 获取位置名称
+function getLocationName(locationId: number | Array<[number, string]>): string {
+  if (Array.isArray(locationId)) {
+    return locationId[1] || '-'
+  }
+  return '-'
+}
+
+// 获取部门名称
+function getDepartmentName(departmentId: number | Array<[number, string]>): string {
+  if (Array.isArray(departmentId)) {
+    return departmentId[1] || '-'
+  }
+  return '-'
+}
+
+// 获取负责人名称
+function getResponsibleName(responsibleId: number | Array<[number, string]>): string {
+  if (Array.isArray(responsibleId)) {
+    return responsibleId[1] || '-'
+  }
+  return '-'
+}
+
+// 获取设备类型标签
+function getEquipmentTypeLabel(type: EquipmentType): string {
+  const typeMap: Record<EquipmentType, string> = {
+    'production': '生产设备',
+    'office': '办公设备',
+    'testing': '检测设备',
+    'other': '其他设备'
+  }
+  return typeMap[type] || type
+}
+
+// 获取等级标签
+function getLevelLabel(level: EquipmentLevel): string {
+  const levelMap: Record<EquipmentLevel, string> = {
+    'a': 'A类',
+    'b': 'B类',
+    'c': 'C类'
+  }
+  return levelMap[level] || level
+}
+
+// 获取保修状态标签
+function getWarrantyStatusLabel(status: WarrantyStatus): string {
+  const statusMap: Record<WarrantyStatus, string> = {
+    'in_warranty': '保修期内',
+    'out_of_warranty': '已过保修期',
+    'no_warranty': '无保修信息'
+  }
+  return statusMap[status] || status
+}
 
 // 格式化日期
 function formatDate(dateStr?: string) {
   if (!dateStr) return '-'
   const date = new Date(dateStr)
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
-}
-
-// 获取点检状态样式
-function getInspectionStatusClass(state: string) {
-  const classMap: Record<string, string> = {
-    'done': 'tag tag--success',
-    'pending': 'tag tag--warning',
-    'in_progress': 'tag tag--primary',
-    'draft': 'tag tag--default'
-  }
-  return classMap[state] || 'tag tag--default'
 }
 
 // 加载设备详情
@@ -152,12 +218,6 @@ async function loadDetail() {
 
   try {
     equipment.value = await equipmentApi.getDetail(Number(id))
-
-    // 加载维修历史
-    repairHistory.value = await equipmentApi.getRepairHistory(Number(id))
-
-    // 加载点检历史
-    inspectionHistory.value = await equipmentApi.getInspectionHistory(Number(id))
   } catch (error: any) {
     uni.showToast({
       title: error.message || '加载失败',
@@ -170,7 +230,7 @@ async function loadDetail() {
 
 // 创建报修
 function handleCreateRepair() {
-  uni.navigateTo({ url: `/pages/repair/create?equipmentId=${equipment.value.id}` })
+  uni.navigateTo({ url: `/pages/repair/create?equipmentId=${equipment.value?.id}` })
 }
 
 onMounted(() => {
@@ -190,24 +250,25 @@ onMounted(() => {
     align-items: flex-start;
   }
 
+  &__code {
+    display: block;
+    font-size: 24rpx;
+    color: #999999;
+    font-family: 'Courier New', monospace;
+    margin-bottom: 6rpx;
+  }
+
   &__name {
     display: block;
     font-size: 36rpx;
     font-weight: 500;
     color: #333333;
-    margin-bottom: 8rpx;
-  }
-
-  &__code {
-    display: block;
-    font-size: 26rpx;
-    color: #999999;
-    font-family: 'Courier New', monospace;
   }
 
   &__status {
     padding: 12rpx 24rpx;
     border-radius: 8rpx;
+    flex-shrink: 0;
   }
 
   &__status-text {
@@ -255,42 +316,8 @@ onMounted(() => {
     line-height: 1.6;
   }
 
-  &__history {
-    display: flex;
-    flex-direction: column;
-    gap: 16rpx;
-  }
-
   &__actions {
     margin: 32rpx 24rpx 0;
-  }
-}
-
-.history-item {
-  display: flex;
-  align-items: center;
-  padding: 16rpx;
-  background: #f5f5f5;
-  border-radius: 8rpx;
-
-  &__date {
-    font-size: 26rpx;
-    color: #666666;
-    width: 180rpx;
-  }
-
-  &__fault,
-  &__task {
-    flex: 1;
-    font-size: 28rpx;
-    color: #333333;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  &__status {
-    font-size: 24rpx;
   }
 }
 </style>

@@ -1,55 +1,90 @@
 import { request } from './request'
 import type { InspectionTask, InspectionResult, SearchParams } from './types'
 
-// 点检 API
+// 点检 API (使用 XML-RPC)
 export const inspectionApi = {
   // 获取点检任务列表
   async getList(params?: SearchParams): Promise<{ data: InspectionTask[]; total: number }> {
-    return request.post('/web/dataset/search_read', {
+    const authInfo = request.getAuthInfo()
+    if (!authInfo) throw new Error('未登录')
+
+    const domain = params?.domain || []
+    const limit = params?.limit || 80
+    const offset = params?.offset || ((params?.page || 1) - 1) * limit
+
+    // 直接用 search_read 获取数据
+    const data = await request.post<InspectionTask[]>('/jsonrpc', {
       jsonrpc: '2.0',
       method: 'call',
       params: {
-        model: 'huasu.inspection.task',
-        domain: params?.domain || [],
-        fields: params?.fields || [
-          'id',
-          'name',
-          'equipment_id',
-          'date',
-          'state',
-          'inspector_id',
-          'route_id',
-          'checklist_template_id',
-          'notes'
-        ],
-        limit: params?.limit || 80,
-        offset: params?.offset || ((params?.page || 1) - 1) * (params?.limit || 80),
-        order: 'date DESC'
+        service: 'object',
+        method: 'execute_kw',
+        args: [
+          authInfo.db,
+          authInfo.uid,
+          authInfo.password,
+          'inspection.task',
+          'search_read',
+          domain,
+          {
+            fields: params?.fields || [
+              'id',
+              'name',
+              'create_date',
+              'write_date',
+              'state',
+              'create_uid',
+              'write_uid'
+            ],
+            limit,
+            offset,
+            order: 'create_date DESC'
+          }
+        ]
       },
       id: Date.now()
     })
+
+    const total = data.length >= limit ? -1 : data.length
+
+    return { data, total }
   },
 
   // 获取待办任务
-  async getPendingTasks(page = 1, limit = 20): Promise<{ data: InspectionTask[]; total: number }> {
-    return request.post('/web/dataset/search_read', {
+  async getPendingTasks(page = 1, limit = 20): Promise<InspectionTask[]> {
+    const authInfo = request.getAuthInfo()
+    if (!authInfo) throw new Error('未登录')
+
+    const domain = [['state', 'in', ['pending', 'in_progress']]]
+
+    return request.post<InspectionTask[]>('/jsonrpc', {
       jsonrpc: '2.0',
       method: 'call',
       params: {
-        model: 'huasu.inspection.task',
-        domain: [['state', 'in', ['pending', 'in_progress']]],
-        fields: [
-          'id',
-          'name',
-          'equipment_id',
-          'date',
-          'state',
-          'inspector_id',
-          'route_id'
-        ],
-        limit,
-        offset: (page - 1) * limit,
-        order: 'date ASC'
+        service: 'object',
+        method: 'execute_kw',
+        args: [
+          authInfo.db,
+          authInfo.uid,
+          authInfo.password,
+          'inspection.task',
+          'search_read',
+          domain,
+          {
+            fields: [
+              'id',
+              'name',
+              'create_date',
+              'write_date',
+              'state',
+              'create_uid',
+              'write_uid'
+            ],
+            limit,
+            offset: (page - 1) * limit,
+            order: 'create_date ASC'
+          }
+        ]
       },
       id: Date.now()
     })
@@ -57,41 +92,60 @@ export const inspectionApi = {
 
   // 获取任务详情
   async getDetail(id: number): Promise<InspectionTask> {
-    return request.post('/web/dataset/call_kw', {
+    const authInfo = request.getAuthInfo()
+    if (!authInfo) throw new Error('未登录')
+
+    const result = await request.post<InspectionTask[]>('/jsonrpc', {
       jsonrpc: '2.0',
       method: 'call',
       params: {
-        model: 'huasu.inspection.task',
-        method: 'read',
-        args: [[id]],
-        kwargs: {
-          fields: [
-            'id',
-            'name',
-            'equipment_id',
-            'date',
-            'state',
-            'inspector_id',
-            'route_id',
-            'checklist_template_id',
-            'notes'
-          ]
-        }
+        service: 'object',
+        method: 'execute_kw',
+        args: [
+          authInfo.db,
+          authInfo.uid,
+          authInfo.password,
+          'inspection.task',
+          'read',
+          [[id]],
+          {
+            fields: [
+              'id',
+              'name',
+              'create_date',
+              'write_date',
+              'state',
+              'create_uid',
+              'write_uid'
+            ]
+          }
+        ]
       },
       id: Date.now()
-    }).then((result: any[]) => result[0])
+    })
+    return result[0]
   },
 
   // 获取点检表单项
   async getChecklistItems(taskId: number): Promise<any[]> {
-    return request.post('/web/dataset/call_kw', {
+    const authInfo = request.getAuthInfo()
+    if (!authInfo) throw new Error('未登录')
+
+    return request.post<any[]>('/jsonrpc', {
       jsonrpc: '2.0',
       method: 'call',
       params: {
-        model: 'huasu.inspection.task',
-        method: 'get_checklist_items',
-        args: [taskId],
-        kwargs: {}
+        service: 'object',
+        method: 'execute_kw',
+        args: [
+          authInfo.db,
+          authInfo.uid,
+          authInfo.password,
+          'inspection.task',
+          'get_checklist_items',
+          [taskId],
+          {}
+        ]
       },
       id: Date.now()
     })
@@ -99,14 +153,24 @@ export const inspectionApi = {
 
   // 提交点检结果
   async submitResult(taskId: number, result: InspectionResult): Promise<void> {
-    return request.post('/web/dataset/call_kw', {
+    const authInfo = request.getAuthInfo()
+    if (!authInfo) throw new Error('未登录')
+
+    return request.post<void>('/jsonrpc', {
       jsonrpc: '2.0',
       method: 'call',
       params: {
-        model: 'huasu.inspection.task',
-        method: 'submit_result',
-        args: [taskId, result],
-        kwargs: {}
+        service: 'object',
+        method: 'execute_kw',
+        args: [
+          authInfo.db,
+          authInfo.uid,
+          authInfo.password,
+          'inspection.task',
+          'submit_result',
+          [taskId, result],
+          {}
+        ]
       },
       id: Date.now()
     })
@@ -114,14 +178,24 @@ export const inspectionApi = {
 
   // 开始任务
   async startTask(taskId: number): Promise<void> {
-    return request.post('/web/dataset/call_kw', {
+    const authInfo = request.getAuthInfo()
+    if (!authInfo) throw new Error('未登录')
+
+    return request.post<void>('/jsonrpc', {
       jsonrpc: '2.0',
       method: 'call',
       params: {
-        model: 'huasu.inspection.task',
-        method: 'action_start',
-        args: [[taskId]],
-        kwargs: {}
+        service: 'object',
+        method: 'execute_kw',
+        args: [
+          authInfo.db,
+          authInfo.uid,
+          authInfo.password,
+          'inspection.task',
+          'action_start',
+          [[taskId]],
+          {}
+        ]
       },
       id: Date.now()
     })
@@ -129,14 +203,24 @@ export const inspectionApi = {
 
   // 完成任务
   async completeTask(taskId: number): Promise<void> {
-    return request.post('/web/dataset/call_kw', {
+    const authInfo = request.getAuthInfo()
+    if (!authInfo) throw new Error('未登录')
+
+    return request.post<void>('/jsonrpc', {
       jsonrpc: '2.0',
       method: 'call',
       params: {
-        model: 'huasu.inspection.task',
-        method: 'action_done',
-        args: [[taskId]],
-        kwargs: {}
+        service: 'object',
+        method: 'execute_kw',
+        args: [
+          authInfo.db,
+          authInfo.uid,
+          authInfo.password,
+          'inspection.task',
+          'action_done',
+          [[taskId]],
+          {}
+        ]
       },
       id: Date.now()
     })

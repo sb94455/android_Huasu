@@ -18,10 +18,6 @@
 
         <view class="repair-detail-page__info">
           <view class="repair-detail-page__info-item">
-            <text class="repair-detail-page__info-label">设备</text>
-            <text class="repair-detail-page__info-value">{{ order.equipment_name || '-' }}</text>
-          </view>
-          <view class="repair-detail-page__info-item">
             <text class="repair-detail-page__info-label">优先级</text>
             <view class="repair-detail-page__priority" :style="{ color: priorityColor }">
               <text class="repair-detail-page__priority-text">{{ priorityText }}</text>
@@ -33,23 +29,7 @@
           </view>
           <view class="repair-detail-page__info-item">
             <text class="repair-detail-page__info-label">报修日期</text>
-            <text class="repair-detail-page__info-value">{{ formatDate(order.date) }}</text>
-          </view>
-          <view class="repair-detail-page__info-item">
-            <text class="repair-detail-page__info-label">报修人</text>
-            <text class="repair-detail-page__info-value">{{ order.reporter_name || '-' }}</text>
-          </view>
-          <view class="repair-detail-page__info-item">
-            <text class="repair-detail-page__info-label">处理人</text>
-            <text class="repair-detail-page__info-value">{{ order.technician_name || '-' }}</text>
-          </view>
-          <view class="repair-detail-page__info-item">
-            <text class="repair-detail-page__info-label">预计完成</text>
-            <text class="repair-detail-page__info-value">{{ formatDate(order.estimated_completion_date) }}</text>
-          </view>
-          <view class="repair-detail-page__info-item">
-            <text class="repair-detail-page__info-label">实际完成</text>
-            <text class="repair-detail-page__info-value">{{ formatDate(order.actual_completion_date) }}</text>
+            <text class="repair-detail-page__info-value">{{ formatDate(order.create_date) }}</text>
           </view>
         </view>
       </view>
@@ -58,12 +38,6 @@
       <view class="card">
         <view class="card__title">故障描述</view>
         <text class="repair-detail-page__description">{{ order.fault_description }}</text>
-      </view>
-
-      <!-- 备注 -->
-      <view v-if="order.notes" class="card">
-        <view class="card__title">备注</view>
-        <text class="repair-detail-page__notes">{{ order.notes }}</text>
       </view>
 
       <!-- 操作按钮 -->
@@ -89,34 +63,57 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRepairStore } from '@/stores/repair'
 import { repairApi } from '@/api/repair'
-import { REPAIR_STATE, REPAIR_STATE_TEXT, REPAIR_STATE_COLOR } from '@/utils/constants'
-import { REPAIR_PRIORITY, REPAIR_PRIORITY_TEXT, REPAIR_PRIORITY_COLOR } from '@/utils/constants'
-
-const repairStore = useRepairStore()
 
 const order = ref<any>(null)
 const loading = ref(false)
 
 const statusText = computed(() => {
   if (!order.value) return ''
-  return REPAIR_STATE_TEXT[order.value.state.toUpperCase() as keyof typeof REPAIR_STATE] || order.value.state
+  const stateMap: Record<string, string> = {
+    'draft': '草稿',
+    'submitted': '已提交',
+    'confirmed': '已确认',
+    'in_progress': '处理中',
+    'done': '已完成',
+    'cancelled': '已取消'
+  }
+  return stateMap[order.value.state] || order.value.state
 })
 
 const statusColor = computed(() => {
   if (!order.value) return '#999'
-  return REPAIR_STATE_COLOR[order.value.state.toUpperCase() as keyof typeof REPAIR_STATE] || '#999'
+  const colorMap: Record<string, string> = {
+    'draft': '#999999',
+    'submitted': '#faad14',
+    'confirmed': '#1890ff',
+    'in_progress': '#1890ff',
+    'done': '#52c41a',
+    'cancelled': '#ff4d4f'
+  }
+  return colorMap[order.value.state] || '#999'
 })
 
 const priorityText = computed(() => {
   if (!order.value) return ''
-  return REPAIR_PRIORITY_TEXT[order.value.priority?.toUpperCase() as keyof typeof REPAIR_PRIORITY] || order.value.priority
+  const priorityMap: Record<string, string> = {
+    'low': '低',
+    'medium': '中',
+    'high': '高',
+    'urgent': '紧急'
+  }
+  return priorityMap[order.value.priority] || order.value.priority
 })
 
 const priorityColor = computed(() => {
   if (!order.value) return '#999'
-  return REPAIR_PRIORITY_COLOR[order.value.priority?.toUpperCase() as keyof typeof REPAIR_PRIORITY] || '#999'
+  const colorMap: Record<string, string> = {
+    'low': '#52c41a',
+    'medium': '#faad14',
+    'high': '#ff7a45',
+    'urgent': '#ff4d4f'
+  }
+  return colorMap[order.value.priority] || '#999'
 })
 
 // 格式化日期
@@ -155,7 +152,7 @@ async function loadDetail() {
 // 提交报修单
 async function handleSubmit() {
   try {
-    await repairStore.submitRepair(order.value.id)
+    await repairApi.submit(order.value.id)
     uni.showToast({ title: '提交成功', icon: 'success' })
     setTimeout(() => {
       uni.navigateBack()
@@ -176,7 +173,7 @@ async function handleCancel() {
     success: async (res) => {
       if (res.confirm) {
         try {
-          await repairStore.cancelRepair(order.value.id)
+          await repairApi.cancel(order.value.id)
           uni.showToast({ title: '已取消', icon: 'success' })
           setTimeout(() => {
             uni.navigateBack()
@@ -254,8 +251,7 @@ onMounted(() => {
     font-weight: 500;
   }
 
-  &__description,
-  &__notes {
+  &__description {
     display: block;
     font-size: 28rpx;
     color: #333333;

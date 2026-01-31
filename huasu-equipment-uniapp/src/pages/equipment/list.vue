@@ -21,7 +21,7 @@
         <text>加载中...</text>
       </view>
 
-      <view v-else-if="equipmentStore.list.length === 0" class="empty">
+      <view v-else-if="!equipmentStore.list || equipmentStore.list.length === 0" class="empty">
         <text class="empty__icon">📦</text>
         <text class="empty__text">暂无设备</text>
       </view>
@@ -42,17 +42,13 @@
         <text>加载更多</text>
       </view>
     </view>
-
-    <!-- 悬浮按钮 -->
-    <view class="equipment-list-page__fab" @click="scanCode">
-      <text class="equipment-list-page__fab-text">📷</text>
-    </view>
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useEquipmentStore } from '@/stores/equipment'
+import EquipmentCard from '@/components/EquipmentCard.vue'
 
 const equipmentStore = useEquipmentStore()
 
@@ -122,24 +118,8 @@ function createRepair(equipmentId: number) {
   uni.navigateTo({ url: `/pages/repair/create?equipmentId=${equipmentId}` })
 }
 
-// 扫码
-function scanCode() {
-  uni.scanCode({
-    success: (res) => {
-      // 扫码成功，跳转到设备详情
-      searchKeyword.value = res.result
-      handleSearch()
-    },
-    fail: () => {
-      uni.showToast({
-        title: '扫码失败',
-        icon: 'none'
-      })
-    }
-  })
-}
-
 // 下拉刷新
+// #ifndef H5
 onPullDownRefresh(() => {
   equipmentStore.clearList()
   loadList(true).finally(() => {
@@ -153,9 +133,10 @@ onReachBottom(() => {
     loadMore()
   }
 })
+// #endif
 
 onMounted(() => {
-  if (equipmentStore.list.length === 0) {
+  if (!equipmentStore.list || equipmentStore.list.length === 0) {
     loadList(true)
   }
 })
@@ -177,25 +158,6 @@ onMounted(() => {
 
   &__content {
     padding: 24rpx;
-  }
-
-  &__fab {
-    position: fixed;
-    right: 32rpx;
-    bottom: 120rpx;
-    width: 112rpx;
-    height: 112rpx;
-    background: #1890ff;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 8rpx 24rpx rgba(24, 144, 255, 0.4);
-    z-index: 100;
-  }
-
-  &__fab-text {
-    font-size: 48rpx;
   }
 }
 

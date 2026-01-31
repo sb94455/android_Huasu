@@ -1,59 +1,96 @@
 import { request } from './request'
 import type { RepairOrder, CreateRepairRequest, SearchParams } from './types'
 
-// 报修 API
+// 报修 API (使用 XML-RPC)
 export const repairApi = {
   // 获取报修单列表
   async getList(params?: SearchParams): Promise<{ data: RepairOrder[]; total: number }> {
-    return request.post('/web/dataset/search_read', {
+    const authInfo = request.getAuthInfo()
+    if (!authInfo) throw new Error('未登录')
+
+    const domain = params?.domain || []
+    const limit = params?.limit || 80
+    const offset = params?.offset || ((params?.page || 1) - 1) * limit
+
+    // 直接用 search_read 获取数据
+    const data = await request.post<RepairOrder[]>('/jsonrpc', {
       jsonrpc: '2.0',
       method: 'call',
       params: {
-        model: 'huasu.repair.order',
-        domain: params?.domain || [],
-        fields: params?.fields || [
-          'id',
-          'name',
-          'equipment_id',
-          'date',
-          'state',
-          'priority',
-          'fault_type',
-          'fault_description',
-          'reporter_id',
-          'technician_id',
-          'estimated_completion_date',
-          'actual_completion_date'
-        ],
-        limit: params?.limit || 80,
-        offset: params?.offset || ((params?.page || 1) - 1) * (params?.limit || 80),
-        order: 'date DESC'
+        service: 'object',
+        method: 'execute_kw',
+        args: [
+          authInfo.db,
+          authInfo.uid,
+          authInfo.password,
+          'maintenance.work.order',
+          'search_read',
+          domain,
+          {
+            fields: params?.fields || [
+              'id',
+              'name',
+              'create_date',
+              'write_date',
+              'state',
+              'priority',
+              'fault_type',
+              'fault_description',
+              'create_uid',
+              'write_uid'
+            ],
+            limit,
+            offset,
+            order: 'create_date DESC'
+          }
+        ]
       },
       id: Date.now()
     })
+
+    const total = data.length >= limit ? -1 : data.length
+
+    return { data, total }
   },
 
   // 获取我的报修单
-  async getMyRepairs(page = 1, limit = 20): Promise<{ data: RepairOrder[]; total: number }> {
-    return request.post('/web/dataset/search_read', {
+  async getMyRepairs(page = 1, limit = 20): Promise<RepairOrder[]> {
+    const authInfo = request.getAuthInfo()
+    if (!authInfo) throw new Error('未登录')
+
+    const domain = [['create_uid', '=', authInfo.uid]]
+
+    return request.post<RepairOrder[]>('/jsonrpc', {
       jsonrpc: '2.0',
       method: 'call',
       params: {
-        model: 'huasu.repair.order',
-        domain: [['create_uid', '=', true]],
-        fields: [
-          'id',
-          'name',
-          'equipment_id',
-          'date',
-          'state',
-          'priority',
-          'fault_type',
-          'fault_description'
-        ],
-        limit,
-        offset: (page - 1) * limit,
-        order: 'date DESC'
+        service: 'object',
+        method: 'execute_kw',
+        args: [
+          authInfo.db,
+          authInfo.uid,
+          authInfo.password,
+          'maintenance.work.order',
+          'search_read',
+          domain,
+          {
+            fields: [
+              'id',
+              'name',
+              'create_date',
+              'write_date',
+              'state',
+              'priority',
+              'fault_type',
+              'fault_description',
+              'create_uid',
+              'write_uid'
+            ],
+            limit,
+            offset: (page - 1) * limit,
+            order: 'create_date DESC'
+          }
+        ]
       },
       id: Date.now()
     })
@@ -61,46 +98,63 @@ export const repairApi = {
 
   // 获取报修单详情
   async getDetail(id: number): Promise<RepairOrder> {
-    return request.post('/web/dataset/call_kw', {
+    const authInfo = request.getAuthInfo()
+    if (!authInfo) throw new Error('未登录')
+
+    const result = await request.post<RepairOrder[]>('/jsonrpc', {
       jsonrpc: '2.0',
       method: 'call',
       params: {
-        model: 'huasu.repair.order',
-        method: 'read',
-        args: [[id]],
-        kwargs: {
-          fields: [
-            'id',
-            'name',
-            'equipment_id',
-            'date',
-            'state',
-            'priority',
-            'fault_type',
-            'fault_description',
-            'reporter_id',
-            'technician_id',
-            'estimated_completion_date',
-            'actual_completion_date',
-            'notes',
-            'image_1920'
-          ]
-        }
+        service: 'object',
+        method: 'execute_kw',
+        args: [
+          authInfo.db,
+          authInfo.uid,
+          authInfo.password,
+          'maintenance.work.order',
+          'read',
+          [[id]],
+          {
+            fields: [
+              'id',
+              'name',
+              'create_date',
+              'write_date',
+              'state',
+              'priority',
+              'fault_type',
+              'fault_description',
+              'create_uid',
+              'write_uid'
+            ]
+          }
+        ]
       },
       id: Date.now()
-    }).then((result: any[]) => result[0])
+    })
+    return result[0]
   },
 
   // 创建报修单
   async create(data: CreateRepairRequest): Promise<number> {
-    return request.post('/web/dataset/call_kw', {
+    const authInfo = request.getAuthInfo()
+    if (!authInfo) throw new Error('未登录')
+
+    return request.post<number>('/jsonrpc', {
       jsonrpc: '2.0',
       method: 'call',
       params: {
-        model: 'huasu.repair.order',
-        method: 'create',
-        args: [data],
-        kwargs: {}
+        service: 'object',
+        method: 'execute_kw',
+        args: [
+          authInfo.db,
+          authInfo.uid,
+          authInfo.password,
+          'maintenance.work.order',
+          'create',
+          [data],
+          {}
+        ]
       },
       id: Date.now()
     })
@@ -108,14 +162,24 @@ export const repairApi = {
 
   // 提交报修单
   async submit(id: number): Promise<void> {
-    return request.post('/web/dataset/call_kw', {
+    const authInfo = request.getAuthInfo()
+    if (!authInfo) throw new Error('未登录')
+
+    return request.post<void>('/jsonrpc', {
       jsonrpc: '2.0',
       method: 'call',
       params: {
-        model: 'huasu.repair.order',
-        method: 'action_submit',
-        args: [[id]],
-        kwargs: {}
+        service: 'object',
+        method: 'execute_kw',
+        args: [
+          authInfo.db,
+          authInfo.uid,
+          authInfo.password,
+          'maintenance.work.order',
+          'action_submit',
+          [[id]],
+          {}
+        ]
       },
       id: Date.now()
     })
@@ -123,14 +187,24 @@ export const repairApi = {
 
   // 取消报修单
   async cancel(id: number): Promise<void> {
-    return request.post('/web/dataset/call_kw', {
+    const authInfo = request.getAuthInfo()
+    if (!authInfo) throw new Error('未登录')
+
+    return request.post<void>('/jsonrpc', {
       jsonrpc: '2.0',
       method: 'call',
       params: {
-        model: 'huasu.repair.order',
-        method: 'action_cancel',
-        args: [[id]],
-        kwargs: {}
+        service: 'object',
+        method: 'execute_kw',
+        args: [
+          authInfo.db,
+          authInfo.uid,
+          authInfo.password,
+          'maintenance.work.order',
+          'action_cancel',
+          [[id]],
+          {}
+        ]
       },
       id: Date.now()
     })

@@ -71,6 +71,12 @@
       "style": {
         "navigationBarTitleText": "创建报修"
       }
+    },
+    {
+      "path": "pages/debug/fields",
+      "style": {
+        "navigationBarTitleText": "字段检测"
+      }
     }
   ],
   "globalStyle": {

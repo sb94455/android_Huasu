@@ -52,7 +52,13 @@ const authStore = useAuthStore()
 
 // 页面跳转
 function navigateTo(url: string) {
-  uni.navigateTo({ url })
+  // tabBar 页面使用 switchTab
+  const tabBarPages = ['/pages/dashboard/index', '/pages/equipment/list', '/pages/inspection/list', '/pages/repair/list']
+  if (tabBarPages.includes(url)) {
+    uni.switchTab({ url })
+  } else {
+    uni.navigateTo({ url })
+  }
 }
 
 // 退出登录

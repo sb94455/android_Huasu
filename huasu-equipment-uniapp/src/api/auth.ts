@@ -75,7 +75,7 @@ export const authApi = {
   // 登出
   async logout(): Promise<void> {
     try {
-      await request.post('/web/session/destroy')
+      // XML-RPC 不需要显式登出请求
     } finally {
       request.clearSession()
       await storage.remove(AUTH_KEY)
@@ -86,14 +86,30 @@ export const authApi = {
   async checkSession(): Promise<boolean> {
     try {
       const authInfo = await storage.get(AUTH_KEY)
-      if (!authInfo || !authInfo.sessionId) {
+      if (!authInfo || !authInfo.uid || !authInfo.password) {
         return false
       }
 
-      request.setSessionId(authInfo.sessionId)
+      // 恢复认证信息到 request
+      request.setAuthInfo({
+        uid: authInfo.uid,
+        password: authInfo.password,
+        db: authInfo.db
+      })
 
-      const response = await request.get('/web/session/check')
-      return response !== false
+      // 尝试调用一个简单的 API 验证
+      await request.post('/jsonrpc', {
+        jsonrpc: '2.0',
+        method: 'call',
+        params: {
+          service: 'common',
+          method: 'version',
+          args: []
+        },
+        id: Date.now()
+      })
+
+      return true
     } catch {
       return false
     }
@@ -103,13 +119,20 @@ export const authApi = {
   async getCurrentUser(): Promise<LoginResponse | null> {
     try {
       const authInfo = await storage.get(AUTH_KEY)
-      if (!authInfo) {
+      if (!authInfo || !authInfo.uid) {
         return null
       }
 
+      // 恢复认证信息到 request
+      request.setAuthInfo({
+        uid: authInfo.uid,
+        password: authInfo.password,
+        db: authInfo.db
+      })
+
       return {
         uid: authInfo.uid,
-        session_id: authInfo.sessionId,
+        session_id: '',
         username: authInfo.username,
         name: authInfo.name
       }

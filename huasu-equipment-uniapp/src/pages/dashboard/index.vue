@@ -1,5 +1,11 @@
 <template>
   <view class="dashboard-page">
+    <!-- 顶部导航栏 -->
+    <view class="dashboard-page__header">
+      <text class="dashboard-page__title">仪表盘</text>
+      <text class="dashboard-page__logout" @click="handleLogout">退出</text>
+    </view>
+
     <view class="container">
       <!-- 设备统计 -->
       <view class="dashboard-section">
@@ -224,16 +230,35 @@ function navigateToRepairDetail(id: number) {
   uni.navigateTo({ url: `/pages/repair/detail?id=${id}` })
 }
 
+// 退出登录
+function handleLogout() {
+  uni.showModal({
+    title: '确认退出',
+    content: '确定要退出登录吗？',
+    success: async (res) => {
+      if (res.confirm) {
+        // 调用 authStore 的 logout
+        const { useAuthStore } = await import('@/stores/auth')
+        const authStore = useAuthStore()
+        await authStore.logout()
+        uni.reLaunch({ url: '/pages/index/index' })
+      }
+    }
+  })
+}
+
 onMounted(() => {
   loadData()
 })
 
 // 下拉刷新
+// #ifndef H5
 onPullDownRefresh(() => {
   loadData().finally(() => {
     uni.stopPullDownRefresh()
   })
 })
+// #endif
 </script>
 
 <style lang="scss" scoped>
@@ -241,6 +266,27 @@ onPullDownRefresh(() => {
   min-height: 100vh;
   background: #f5f5f5;
   padding-bottom: 100rpx;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24rpx;
+    background: #ffffff;
+    border-bottom: 1rpx solid #e8e8e8;
+  }
+
+  &__title {
+    font-size: 36rpx;
+    font-weight: bold;
+    color: #333333;
+  }
+
+  &__logout {
+    font-size: 28rpx;
+    color: #1890ff;
+    padding: 8rpx 16rpx;
+  }
 
   &__refresh {
     text-align: center;

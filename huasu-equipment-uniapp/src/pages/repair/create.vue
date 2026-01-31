@@ -5,9 +5,9 @@
       <view class="card">
         <view class="input-group">
           <text class="input-group__label input-group__required">选择设备</text>
-          <picker mode="selector" :range="equipmentOptions" range-key="name" @change="onEquipmentChange">
+          <picker mode="selector" :range="equipmentOptions" range-key="displayName" @change="onEquipmentChange">
             <view class="picker" :class="{ 'picker--placeholder': !selectedEquipment }">
-              {{ selectedEquipment ? selectedEquipment.name : '请选择设备' }}
+              {{ selectedEquipment ? selectedEquipment.displayName : '请选择设备' }}
             </view>
           </picker>
         </view>
@@ -114,7 +114,13 @@ const submitting = ref(false)
 async function loadEquipmentList() {
   try {
     const result = await equipmentApi.getList({ limit: 1000 })
-    equipmentOptions.value = result.data.filter(e => e.status === 'active')
+    // 过滤出正常状态的设备，并添加显示名称
+    equipmentOptions.value = result.data
+      .filter(e => e.state === 'normal')
+      .map(e => ({
+        ...e,
+        displayName: `${e.name} ${e.equipment_name} ${e.model ? '(' + e.model + ')' : ''}`
+      }))
   } catch (error: any) {
     uni.showToast({
       title: '加载设备列表失败',

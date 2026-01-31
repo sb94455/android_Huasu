@@ -1,21 +1,31 @@
 <template>
   <view class="equipment-card" @click="onClick">
     <view class="equipment-card__header">
-      <view class="equipment-card__code">{{ equipment.code }}</view>
+      <view class="equipment-card__main">
+        <text class="equipment-card__code">{{ equipment.name || '-' }}</text>
+        <text class="equipment-card__name">{{ equipment.equipment_name }}</text>
+      </view>
       <view class="equipment-card__status" :style="{ backgroundColor: statusColor }">
         <text class="equipment-card__status-text">{{ statusText }}</text>
       </view>
     </view>
 
-    <view class="equipment-card__body">
-      <text class="equipment-card__name">{{ equipment.name }}</text>
-
-      <view v-if="equipment.location" class="equipment-card__info">
-        <text class="equipment-card__info-text">📍 {{ equipment.location }}</text>
+    <view class="equipment-card__info" v-if="equipment.model || equipment.brand_id || equipment.location_id || equipment.equipment_type">
+      <view class="equipment-card__info-item" v-if="equipment.model">
+        <text class="equipment-card__info-label">型号</text>
+        <text class="equipment-card__info-value">{{ equipment.model }}</text>
       </view>
-
-      <view v-if="equipment.category" class="equipment-card__info">
-        <text class="equipment-card__info-text">🏷️ {{ equipment.category }}</text>
+      <view class="equipment-card__info-item" v-if="equipment.brand_id">
+        <text class="equipment-card__info-label">品牌</text>
+        <text class="equipment-card__info-value">{{ getBrandName(equipment.brand_id) }}</text>
+      </view>
+      <view class="equipment-card__info-item" v-if="equipment.equipment_type">
+        <text class="equipment-card__info-label">类型</text>
+        <text class="equipment-card__info-value">{{ getEquipmentTypeLabel(equipment.equipment_type) }}</text>
+      </view>
+      <view class="equipment-card__info-item" v-if="equipment.location_id">
+        <text class="equipment-card__info-label">位置</text>
+        <text class="equipment-card__info-value">{{ getLocationName(equipment.location_id) }}</text>
       </view>
     </view>
 
@@ -31,8 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Equipment } from '@/types'
-import { EQUIPMENT_STATUS, EQUIPMENT_STATUS_TEXT, EQUIPMENT_STATUS_COLOR } from '@/utils/constants'
+import type { Equipment, EquipmentType } from '@/types'
 
 interface Props {
   equipment: Equipment
@@ -51,13 +60,53 @@ const emit = defineEmits<{
   repair: []
 }>()
 
+// 状态映射：normal(正常), bug(异常), maintenance(维修中), scrapped(已报废)
 const statusText = computed(() => {
-  return EQUIPMENT_STATUS_TEXT[props.equipment.status.toUpperCase() as keyof typeof EQUIPMENT_STATUS] || props.equipment.status
+  const stateMap: Record<string, string> = {
+    'normal': '正常',
+    'bug': '异常',
+    'maintenance': '维修中',
+    'scrapped': '已报废'
+  }
+  return stateMap[props.equipment.state] || props.equipment.state
 })
 
 const statusColor = computed(() => {
-  return EQUIPMENT_STATUS_COLOR[props.equipment.status.toUpperCase() as keyof typeof EQUIPMENT_STATUS] || '#999'
+  const colorMap: Record<string, string> = {
+    'normal': '#52c41a',     // 正常 - 绿色
+    'bug': '#ff4d4f',        // 异常 - 红色
+    'maintenance': '#faad14', // 维修中 - 橙色
+    'scrapped': '#999999'     // 已报废 - 灰色
+  }
+  return colorMap[props.equipment.state] || '#999'
 })
+
+// 获取品牌名称
+function getBrandName(brandId: number | Array<[number, string]>): string {
+  if (Array.isArray(brandId)) {
+    return brandId[1] || '-'
+  }
+  return '-'
+}
+
+// 获取位置名称
+function getLocationName(locationId: number | Array<[number, string]>): string {
+  if (Array.isArray(locationId)) {
+    return locationId[1] || '-'
+  }
+  return '-'
+}
+
+// 获取设备类型标签
+function getEquipmentTypeLabel(type: EquipmentType): string {
+  const typeMap: Record<EquipmentType, string> = {
+    'production': '生产设备',
+    'office': '办公设备',
+    'testing': '检测设备',
+    'other': '其他设备'
+  }
+  return typeMap[type] || type
+}
 
 function onClick() {
   emit('click')
@@ -83,19 +132,34 @@ function onRepair() {
   &__header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16rpx;
+    align-items: flex-start;
+    margin-bottom: 12rpx;
+  }
+
+  &__main {
+    flex: 1;
+    margin-right: 16rpx;
   }
 
   &__code {
-    font-size: 28rpx;
+    display: block;
+    font-size: 24rpx;
     color: #999999;
     font-family: 'Courier New', monospace;
+    margin-bottom: 4rpx;
+  }
+
+  &__name {
+    display: block;
+    font-size: 30rpx;
+    font-weight: 500;
+    color: #333333;
   }
 
   &__status {
     padding: 8rpx 16rpx;
     border-radius: 8rpx;
+    flex-shrink: 0;
   }
 
   &__status-text {
@@ -103,43 +167,45 @@ function onRepair() {
     color: #ffffff;
   }
 
-  &__body {
-    margin-bottom: 16rpx;
-  }
-
-  &__name {
-    font-size: 32rpx;
-    font-weight: 500;
-    color: #333333;
-    display: block;
+  &__info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16rpx 24rpx;
     margin-bottom: 12rpx;
   }
 
-  &__info {
-    margin-bottom: 8rpx;
+  &__info-item {
+    display: flex;
+    align-items: baseline;
+    font-size: 24rpx;
   }
 
-  &__info-text {
-    font-size: 26rpx;
-    color: #666666;
+  &__info-label {
+    color: #999999;
+    margin-right: 8rpx;
+  }
+
+  &__info-value {
+    color: #333333;
+    font-weight: 400;
   }
 
   &__footer {
     display: flex;
     gap: 16rpx;
-    padding-top: 16rpx;
+    padding-top: 12rpx;
     border-top: 1rpx solid #f0f0f0;
   }
 
   &__action {
     flex: 1;
-    height: 64rpx;
+    height: 56rpx;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 8rpx;
     border: 1rpx solid #d9d9d9;
-    font-size: 28rpx;
+    font-size: 26rpx;
     color: #666666;
     transition: all 0.3s;
 

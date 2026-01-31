@@ -114,8 +114,8 @@ class RequestClient {
     let requestData = finalConfig.data
     if (isXmlRpc && this.authInfo && requestData?.service === 'object') {
       // 确保 args 包含认证信息 [db, uid, password, model, method, ...]
-      if (requestData.params?.args) {
-        const args = requestData.params.args
+      if (requestData.args) {
+        const args = requestData.args
         if (args.length >= 4 && args[1] !== this.authInfo.uid) {
           // 自动注入认证信息到 execute_kw
           args.splice(0, 4, this.authInfo.db, this.authInfo.uid, this.authInfo.password, args[3])
@@ -135,11 +135,28 @@ class RequestClient {
             // XML-RPC 直接返回 result，不需要包装在 ApiResponse 中
             if (isXmlRpc) {
               if (res.data?.error) {
-                const errorMsg = res.data.error.data?.message || res.data.error.message || '请求失败'
+                let errorMsg = res.data.error.data?.message || res.data.error.message || '请求失败'
+
+                // 检测字段错误并给出更清晰的提示
+                const errorData = res.data.error.data
+                if (errorData?.debug) {
+                  // 解析 Odoo 错误信息，提取字段名
+                  const fieldMatch = errorData.debug.match(/Invalid field '([^']+)'/)
+                  if (fieldMatch) {
+                    errorMsg = `字段 "${fieldMatch[1]}" 不存在，请在 src/config/fields.ts 中移除此字段`
+                  }
+                }
+
                 reject(new Error(errorMsg))
                 return
               }
-              resolve(res.data?.result as T)
+              // 确保 result 存在
+              if (res.data?.result === undefined) {
+                console.error('XML-RPC: result is undefined', res.data)
+                reject(new Error('响应格式错误'))
+                return
+              }
+              resolve(res.data.result as T)
               return
             }
 

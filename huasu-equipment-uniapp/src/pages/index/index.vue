@@ -136,9 +136,9 @@ async function handleLogin() {
 
     uni.showToast({ title: '登录成功', icon: 'success' })
 
-    // 跳转到主页
+    // 跳转到仪表盘(tabBar页面)
     setTimeout(() => {
-      uni.reLaunch({ url: '/pages/main/index' })
+      uni.switchTab({ url: '/pages/dashboard/index' })
     }, 500)
   } catch (error: any) {
     uni.showToast({

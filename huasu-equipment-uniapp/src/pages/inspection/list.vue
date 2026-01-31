@@ -59,10 +59,11 @@ const selectedFilter = ref('all')
 const loading = ref(false)
 
 const filteredList = computed(() => {
+  const list = inspectionStore.list || []
   if (selectedFilter.value === 'all') {
-    return inspectionStore.list
+    return list
   }
-  return inspectionStore.list.filter(task => task.state === selectedFilter.value)
+  return list.filter(task => task.state === selectedFilter.value)
 })
 
 // 加载任务列表
@@ -72,7 +73,7 @@ async function loadList(refresh = false) {
   loading.value = true
 
   try {
-    const page = refresh ? 1 : inspectionStore.currentPage + 1
+    const page = refresh ? 1 : (inspectionStore.currentPage || 1) + 1
     await inspectionStore.fetchList({ page, limit: 20 }, refresh)
   } catch (error: any) {
     uni.showToast({
@@ -101,6 +102,7 @@ function viewDetail(id: number) {
 }
 
 // 下拉刷新
+// #ifndef H5
 onPullDownRefresh(() => {
   inspectionStore.clearList()
   loadList(true).finally(() => {
@@ -114,9 +116,10 @@ onReachBottom(() => {
     loadMore()
   }
 })
+// #endif
 
 onMounted(() => {
-  if (inspectionStore.list.length === 0) {
+  if (!inspectionStore.list || inspectionStore.list.length === 0) {
     loadList(true)
   }
 })
